@@ -1,12 +1,16 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "snapshot",
+  "name": "Snapshot",
   "title": "Snapshot",
-  "description": "",
+  "description": "This is Raycast Extension to help DAO Guvn000rs keep up to speed and engage in Governance on Snapshot",
   "icon": "command-icon.png",
   "author": "kempsterrrr",
   "categories": [
     "Communication"
+  ],
+  "contributors": [
+    "@kempsterrrr",
+    "@miralsuthar"
   ],
   "license": "MIT",
   "commands": [

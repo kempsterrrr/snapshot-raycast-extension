@@ -15,7 +15,7 @@
   "license": "MIT",
   "commands": [
     {
-      "name": "snapshot",
+      "name": "snapshot",`a`
       "title": "Snapshot",
       "description": "",
       "mode": "view",

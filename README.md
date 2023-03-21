@@ -4,8 +4,8 @@ This is [Raycast](https://www.raycast.com/) Extension to help DAO Guvn000rs keep
 
 ## Contributors
 
-@kempsterrrr
-@miralsuthar
+[@kempsterrrr](https://github.com/kempsterrrr)
+[@miralsuthar](https://github.com/miralsuthar)
 
 ## Roadmap
 

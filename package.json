@@ -1,6 +1,6 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "Snapshot",
+  "name": "snapshot",
   "title": "Snapshot",
   "description": "This is Raycast Extension to help DAO Guvn000rs keep up to speed and engage in Governance on Snapshot",
   "icon": "command-icon.png",

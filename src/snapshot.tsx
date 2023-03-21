@@ -1,48 +1,26 @@
-import { Action, ActionPanel, Form, Icon, List } from "@raycast/api";
-import { useFetch } from "@raycast/utils";
-import { useState, useEffect } from "react";
-
-const SNAPSHOT_ENDPOINT = `https://hub.snapshot.org/graphql`;
+import { useState } from "react";
+import { Action, ActionPanel, List, useNavigation } from "@raycast/api";
+import { getSpaces } from "./utils";
+import { space } from "./types";
+import { Proposals } from "./proposals";
 
 // Creating a new query-client which we will use
 // in our QueryClientProvider that can be accessed
 // from anywhere in the app.
-
 export default function Command() {
-  const { isLoading, data } = useFetch(`https://hub.snapshot.org/graphql`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      query: ` {
-        proposals(where: {space:"devdao.eth"} ) {
-          snapshot
-          author
-          title
-          link
-          state
-          choices
-          scores
-          strategies {
-            name
-          }
-          symbol
-        }
-      }`,
-    }),
-    keepPreviousData: false,
-  });
+  const [searchSpace, setSearchSpace] = useState("");
+
+  const { isLoading: isSpaceLoading, data: spaceData } = getSpaces(searchSpace);
 
   return (
-    <List isShowingDetail isLoading={isLoading}>
-      {!isLoading
-        ? data.data.proposals.map((item, index) => (
+    <List isShowingDetail isLoading={isSpaceLoading} onSearchTextChange={setSearchSpace}>
+      {!isSpaceLoading
+        ? spaceData.data.spaces.map((item: space) => (
             <List.Item
-              key={index}
-              title={item.title}
-              actions={<Actions item={item} />}
-              subtitle={item.state}
+              key={item.id}
+              title={item.name}
+              actions={<Actions space={item.id} />}
+              subtitle={item.symbol}
               icon={{
                 source: "../assets/extension_icon.png",
               }}
@@ -55,9 +33,9 @@ export default function Command() {
                         title="Strategy"
                         text={`${item.strategies[0].name} ${item.symbol}`}
                       />
-                      <List.Item.Detail.Metadata.Label title="State" text={item.state} />
-                      <List.Item.Detail.Metadata.Label title="Author" text={item.author} />
-                      <List.Item.Detail.Metadata.Label title="Start Date" text={item.author} />
+                      <List.Item.Detail.Metadata.Label title="Symbol" text={item.symbol} />
+                      <List.Item.Detail.Metadata.Label title="About" text={item.about} />
+                      {/* <List.Item.Detail.Metadata.Label title="Start Date" text={item.author} /> */}
                       <List.Item.Detail.Metadata.Separator />
                     </List.Item.Detail.Metadata>
                   }
@@ -70,19 +48,12 @@ export default function Command() {
   );
 }
 
-function Actions(props: { item }) {
+function Actions({ space }: { space: string }) {
+  const { push } = useNavigation();
+
   return (
-    <ActionPanel title={props.item.title}>
-      <ActionPanel.Section>{props.item.link && <Action.OpenInBrowser url={props.item.link} />}</ActionPanel.Section>
-      <ActionPanel.Section>
-        {props.item.link && (
-          <Action.CopyToClipboard
-            content={props.item.link}
-            title="Copy Link"
-            shortcut={{ modifiers: ["cmd"], key: "." }}
-          />
-        )}
-      </ActionPanel.Section>
+    <ActionPanel>
+      <Action title="Push" onAction={() => push(<Proposals space={space} />)} />
     </ActionPanel>
   );
 }

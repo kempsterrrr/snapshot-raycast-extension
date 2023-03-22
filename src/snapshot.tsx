@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Action, ActionPanel, List, useNavigation } from "@raycast/api";
 import { getSnapshotSpaces } from "./utils";
-import { space, SnapshotSpaceType } from "./types";
+import { SnapshotSpaceType } from "./types";
 import { Proposals } from "./proposals";
 
 // Creating a new query-client which we will use
@@ -20,8 +20,11 @@ export default function Command() {
     Object.keys(obj).forEach((key) => {
       arrspaces.push({ ...obj[key], id: key });
     });
+
     setDataLoading(false);
-    setSpaces(arrspaces.sort((a, b) => b.followers - a.followers));
+    setSpaces(
+      arrspaces.filter((space) => space.followers && space.followers > 0).sort((a, b) => b.followers - a.followers)
+    );
   }
 
   useEffect(() => {

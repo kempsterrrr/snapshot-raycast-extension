@@ -70,7 +70,9 @@ export const getProposals = (space: string) => {
 };
 
 export const getSnapshotSpaces = () => {
-  const { isLoading, data, error } = useFetch("https://hub.snapshot.org/api/explore");
+  const { isLoading, data, error } = useFetch("https://hub.snapshot.org/api/explore", {
+    keepPreviousData: true,
+  });
   // console.log("fetching spaces: ", data);
   return { isLoading, data, error };
 };

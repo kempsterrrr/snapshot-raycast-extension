@@ -36,8 +36,11 @@ export default function Command() {
   useEffect(() => {
     if (searchSpace.length > 0) {
       const filteredSpaces = spaces.filter(
-        (space) => space.name.includes(searchSpace) || space.id.includes(searchSpace)
+        (space) =>
+          space.name.toLocaleLowerCase().includes(searchSpace.toLocaleLowerCase()) ||
+          space.id.toLocaleLowerCase().includes(searchSpace.toLocaleLowerCase())
       );
+      console.log(filteredSpaces);
       setSpaces(filteredSpaces);
     } else {
       extractObjects((data as any).spaces);

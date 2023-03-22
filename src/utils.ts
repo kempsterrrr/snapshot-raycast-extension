@@ -12,7 +12,8 @@ export const getSpaces = (id: string) => {
       query: `{
         spaces(
           first: 100
-          ${id ? `where: {id: "${id}"}` : ""}
+          ${id.length > 4 ? `where: {id: "${id}"}` : ""}
+          orderDirection: desc
         ) {
           id
           name
@@ -65,5 +66,11 @@ export const getProposals = (space: string) => {
     }),
     keepPreviousData: false,
   });
+  return { isLoading, data, error };
+};
+
+export const getSnapshotSpaces = () => {
+  const { isLoading, data, error } = useFetch("https://hub.snapshot.org/api/explore");
+  // console.log("fetching spaces: ", data);
   return { isLoading, data, error };
 };

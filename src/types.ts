@@ -20,3 +20,14 @@ export type space = {
   };
   plugins: any;
 };
+
+export type SnapshotSpaceType = {
+  id: string;
+  name: string;
+  network: string;
+  networks: string[];
+  categories: string[];
+  proposals: number;
+  votes: number;
+  followers: number;
+};

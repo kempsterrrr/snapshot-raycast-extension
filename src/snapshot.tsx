@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Action, ActionPanel, List, useNavigation } from "@raycast/api";
 import { getSnapshotSpaces } from "./utils";
-import { space } from "./types";
+import { space, SnapshotSpaceType } from "./types";
 import { Proposals } from "./proposals";
 
 // Creating a new query-client which we will use
@@ -9,19 +9,19 @@ import { Proposals } from "./proposals";
 // from anywhere in the app.
 export default function Command() {
   const [searchSpace, setSearchSpace] = useState("");
-  const [spaces, setSpaces] = useState([]);
+  const [spaces, setSpaces] = useState<SnapshotSpaceType[]>([]);
   const [isDataLoading, setDataLoading] = useState(true);
 
   const { isLoading, data } = getSnapshotSpaces();
 
-  function extractObjects(obj) {
+  function extractObjects(obj: any) {
     setDataLoading(true);
-    let arrspaces = [];
+    const arrspaces: SnapshotSpaceType[] = [];
     Object.keys(obj).forEach((key) => {
       arrspaces.push({ ...obj[key], id: key });
     });
     setDataLoading(false);
-    setSpaces(arrspaces);
+    setSpaces(arrspaces.sort((a, b) => b.followers - a.followers));
   }
 
   useEffect(() => {
@@ -33,9 +33,7 @@ export default function Command() {
   useEffect(() => {
     if (searchSpace.length > 0) {
       const filteredSpaces = spaces.filter(
-        (space) =>
-          space.name.toLowerCase().includes(searchSpace.toLowerCase()) ||
-          space.id.toLowerCase().includes(searchSpace.toLowerCase())
+        (space) => space.name.includes(searchSpace) || space.id.includes(searchSpace)
       );
       setSpaces(filteredSpaces);
     } else {
@@ -46,7 +44,7 @@ export default function Command() {
   return (
     <List isShowingDetail isLoading={isDataLoading} searchText={searchSpace} onSearchTextChange={setSearchSpace}>
       {!isDataLoading
-        ? spaces.slice(0, 100).map((item: space) => (
+        ? spaces.slice(0, 100).map((item: SnapshotSpaceType) => (
             <List.Item
               key={item.id}
               title={item.name}
@@ -60,10 +58,7 @@ export default function Command() {
                   // markdown={`# ${item.title}`}
                   metadata={
                     <List.Item.Detail.Metadata>
-                      {/* <List.Item.Detail.Metadata.Label
-                        title="Strategy"
-                        text={`${item.strategies[0].name} ${item.symbol}`}
-                      /> */}
+                      <List.Item.Detail.Metadata.Label title="Followers" text={`${item.followers}`} />
                       {/* <List.Item.Detail.Metadata.Label title="Symbol" text={item.symbol} /> */}
                       {/* <List.Item.Detail.Metadata.Label title="About" text={item.about} /> */}
                       {/* <List.Item.Detail.Metadata.Label title="Start Date" text={item.author} /> */}

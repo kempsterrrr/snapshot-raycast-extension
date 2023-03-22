@@ -29,7 +29,7 @@ export default function Command() {
 
   useEffect(() => {
     if (!isLoading) {
-      extractObjects(data.spaces);
+      extractObjects((data as any).spaces);
     }
   }, [data, isLoading]);
 
@@ -40,14 +40,14 @@ export default function Command() {
       );
       setSpaces(filteredSpaces);
     } else {
-      extractObjects(data.spaces);
+      extractObjects((data as any).spaces);
     }
-  }, [searchSpace]);
+  }, [searchSpace, data]);
 
   return (
     <List isShowingDetail isLoading={isDataLoading} searchText={searchSpace} onSearchTextChange={setSearchSpace}>
       {!isDataLoading
-        ? spaces.slice(0, 100).map((item: SnapshotSpaceType) => (
+        ? spaces?.slice(0, 100).map((item: SnapshotSpaceType) => (
             <List.Item
               key={item.id}
               title={item.name}

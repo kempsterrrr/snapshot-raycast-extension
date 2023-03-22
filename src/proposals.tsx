@@ -6,7 +6,7 @@ export const Proposals = ({ space }: { space: string }) => {
   return (
     <List isShowingDetail isLoading={isLoading}>
       {!isLoading
-        ? data.data.proposals.map((item: any, index: number) => (
+        ? (data as any).data.proposals.map((item: any, index: number) => (
             <List.Item
               key={index}
               title={item.title}

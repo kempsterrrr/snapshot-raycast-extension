@@ -10,6 +10,7 @@ import { Proposals } from "./proposals";
 export default function Command() {
   const [searchSpace, setSearchSpace] = useState("");
   const [spaces, setSpaces] = useState<SnapshotSpaceType[]>([]);
+  const [filterdList, setFilteredList] = useState<SnapshotSpaceType[]>([]);
   const [isDataLoading, setDataLoading] = useState(true);
 
   const { isLoading, data } = getSnapshotSpaces();
@@ -27,6 +28,16 @@ export default function Command() {
     );
   }
 
+  const filterBySearch = (searchText: string) => {
+    const updatedList = [...spaces];
+    const filteredList = updatedList.filter(
+      (space) =>
+        space.name.toLocaleLowerCase().includes(searchText.toLocaleLowerCase()) ||
+        space.id.toLocaleLowerCase().includes(searchText.toLocaleLowerCase())
+    );
+    setFilteredList(filteredList);
+  };
+
   useEffect(() => {
     if (!isLoading) {
       extractObjects((data as any).spaces);
@@ -35,22 +46,16 @@ export default function Command() {
 
   useEffect(() => {
     if (searchSpace.length > 0) {
-      const filteredSpaces = spaces.filter(
-        (space) =>
-          space.name.toLocaleLowerCase().includes(searchSpace.toLocaleLowerCase()) ||
-          space.id.toLocaleLowerCase().includes(searchSpace.toLocaleLowerCase())
-      );
-      console.log(filteredSpaces);
-      setSpaces(filteredSpaces);
+      filterBySearch(searchSpace);
     } else {
-      extractObjects((data as any).spaces);
+      setFilteredList(spaces);
     }
-  }, [searchSpace, data]);
+  }, [searchSpace, spaces]);
 
   return (
     <List isShowingDetail isLoading={isDataLoading} searchText={searchSpace} onSearchTextChange={setSearchSpace}>
       {!isDataLoading
-        ? spaces?.slice(0, 100).map((item: SnapshotSpaceType) => (
+        ? filterdList?.slice(0, 100).map((item: SnapshotSpaceType) => (
             <List.Item
               key={item.id}
               title={item.name}

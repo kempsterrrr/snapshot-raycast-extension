@@ -2,6 +2,8 @@ import { useFetch } from "@raycast/utils";
 
 const SNAPSHOT_ENDPOINT = `https://hub.snapshot.org/graphql`;
 
+export const ProposalBaseUrl = "https://snapshot.org/#/";
+
 export const getSpaces = (id: string) => {
   const { isLoading, data, error } = useFetch(SNAPSHOT_ENDPOINT, {
     method: "POST",

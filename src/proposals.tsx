@@ -1,5 +1,5 @@
-import { List } from "@raycast/api";
-import { getProposals } from "./utils";
+import { List, ActionPanel, Action } from "@raycast/api";
+import { getProposals, ProposalBaseUrl } from "./utils";
 
 export const Proposals = ({ space }: { space: string }) => {
   const { isLoading, data } = getProposals(space);
@@ -10,7 +10,7 @@ export const Proposals = ({ space }: { space: string }) => {
             <List.Item
               key={index}
               title={item.title}
-              //   actions={<Actions item={item} />}
+              actions={<Actions link={item.link} />}
               subtitle={item.state}
               icon={{
                 source: "../assets/extension_icon.png",
@@ -36,5 +36,13 @@ export const Proposals = ({ space }: { space: string }) => {
           ))
         : null}
     </List>
+  );
+};
+
+const Actions = ({ link }: { link: string }) => {
+  return (
+    <ActionPanel>
+      <Action.OpenInBrowser url={link} />
+    </ActionPanel>
   );
 };

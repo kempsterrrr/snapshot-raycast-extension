@@ -52,13 +52,18 @@ export const getProposals = (space: string) => {
     body: JSON.stringify({
       query: ` {
         proposals(where: {space:"${space}"} ) {
+          id
           snapshot
           author
           title
+          body
           link
           state
           choices
           scores
+          space {
+            id
+          }
           strategies {
             name
           }

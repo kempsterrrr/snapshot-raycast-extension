@@ -1,5 +1,7 @@
-import { List, ActionPanel, Action } from "@raycast/api";
-import { getProposals, ProposalBaseUrl } from "./utils";
+import { List, ActionPanel, Action, useNavigation } from "@raycast/api";
+import { getProposals } from "./utils";
+import { DetailView } from "./detail";
+import { Vote } from "./vote";
 
 export const Proposals = ({ space }: { space: string }) => {
   const { isLoading, data } = getProposals(space);
@@ -10,7 +12,7 @@ export const Proposals = ({ space }: { space: string }) => {
             <List.Item
               key={index}
               title={item.title}
-              actions={<Actions link={item.link} />}
+              actions={<Actions link={item.link} item={item} />}
               subtitle={item.state}
               icon={{
                 source: "../assets/extension_icon.png",
@@ -39,10 +41,13 @@ export const Proposals = ({ space }: { space: string }) => {
   );
 };
 
-const Actions = ({ link }: { link: string }) => {
+const Actions = ({ link, item }: { link: string; item: any }) => {
+  const { push } = useNavigation();
   return (
     <ActionPanel>
       <Action.OpenInBrowser url={link} />
+      <Action title="Detail View" onAction={() => push(<DetailView item={item} />)} />
+      {item.state === "active" && <Action title="Vote" onAction={() => push(<Vote proposal={item} />)} />}
     </ActionPanel>
   );
 };

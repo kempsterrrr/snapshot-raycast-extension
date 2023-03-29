@@ -4,6 +4,7 @@ import { Detail, Action, ActionPanel, Form } from "@raycast/api";
 import qrcode from "qrcode";
 import os from "os";
 import path from "path";
+import { JsonRpcProvider } from "ethers";
 
 export const VoteView = ({ proposal }: { proposal: any }) => {
   const [signClient, setSignClient] = useState<any>();
@@ -12,10 +13,12 @@ export const VoteView = ({ proposal }: { proposal: any }) => {
   const [markdown, setMarkdown] = useState(`Welcome to snapshot voting`);
   const [vote, setVote] = useState("1");
 
+  const provider = new JsonRpcProvider("https://mainnet.infura.io/v3/your-infura-id");
+
   async function createClient() {
     try {
       const client = await SignClient.init({
-        projectId: "73737107d548a7031fe753269a8ee6b4",
+        projectId: "project-id",
       });
       setSignClient(client);
       console.log("create client run");
@@ -83,6 +86,10 @@ export const VoteView = ({ proposal }: { proposal: any }) => {
       handleConnect();
     }
   }, [signClient]);
+
+  useEffect(() => {
+    console.log("provider: ", provider);
+  }, []);
 
   return accounts.length ? (
     <Form actions={<Actions item={proposal} vote={vote} />}>

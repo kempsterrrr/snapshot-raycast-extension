@@ -26,10 +26,17 @@
     "@apollo/client": "^3.7.10",
     "@raycast/api": "^1.48.7",
     "@raycast/utils": "^1.5.2",
-    "graphql": "^16.6.0"
+    "@snapshot-labs/snapshot.js": "^0.4.74",
+    "@walletconnect/sign-client": "^2.5.2",
+    "ethers": "^6.2.3",
+    "graphql": "^16.6.0",
+    "lokijs": "^1.5.12",
+    "qrcode": "^1.5.1"
   },
   "devDependencies": {
+    "@types/lokijs": "^1.5.7",
     "@types/node": "18.8.3",
+    "@types/qrcode": "^1.5.0",
     "@types/react": "18.0.9",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",

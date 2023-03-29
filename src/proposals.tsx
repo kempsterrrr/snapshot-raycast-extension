@@ -12,7 +12,7 @@ export const Proposals = ({ space }: { space: string }) => {
             <List.Item
               key={index}
               title={item.title}
-              actions={<Actions link={item.link} item={item} />}
+              actions={<Actions link={item.link} item={item} spaceId={space} />}
               subtitle={item.state}
               icon={{
                 source: "../assets/extension_icon.png",
@@ -41,13 +41,15 @@ export const Proposals = ({ space }: { space: string }) => {
   );
 };
 
-const Actions = ({ link, item }: { link: string; item: any }) => {
+const Actions = ({ link, item, spaceId }: { link: string; item: any; spaceId: string }) => {
   const { push } = useNavigation();
   return (
     <ActionPanel>
       <Action.OpenInBrowser url={link} />
       <Action title="Detail View" onAction={() => push(<DetailView item={item} />)} />
-      {item.state === "active" && <Action title="Vote" onAction={() => push(<VoteView proposal={item} />)} />}
+      {item.state === "active" && (
+        <Action title="Vote" onAction={() => push(<VoteView proposal={item} spaceId={spaceId} />)} />
+      )}
     </ActionPanel>
   );
 };

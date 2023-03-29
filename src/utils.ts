@@ -1,5 +1,4 @@
 import { useFetch } from "@raycast/utils";
-import { JsonRpcProvider } from "ethers";
 import snapshot from "@snapshot-labs/snapshot.js";
 
 const SNAPSHOT_ENDPOINT = `https://hub.snapshot.org/graphql`;

@@ -1,51 +1,68 @@
 import { useEffect, useState } from "react";
-import { SignClient } from "@walletconnect/sign-client";
 import { Detail, Action, ActionPanel, Form } from "@raycast/api";
 import qrcode from "qrcode";
 import os from "os";
 import path from "path";
-import { JsonRpcProvider } from "ethers";
+import { JsonRpcFetchFunc, Web3Provider } from "@ethersproject/providers";
+import fetch from "node-fetch";
+import NodeWalletConnect from "@walletconnect/node";
+import snapshot from "@snapshot-labs/snapshot.js";
 
-export const VoteView = ({ proposal }: { proposal: any }) => {
-  const [signClient, setSignClient] = useState<any>();
-  const [sessions, setSessions] = useState<any>([]);
-  const [accounts, setAccounts] = useState<any>([]);
+export const VoteView = ({ proposal, spaceId }: { proposal: any; spaceId: string }) => {
   const [markdown, setMarkdown] = useState(`Welcome to snapshot voting`);
+  const [walletConnector, setWalletConnector] = useState<NodeWalletConnect>();
+  const [accounts, setAccounts] = useState<string[]>();
+  const [params, setParams] = useState<any>();
   const [vote, setVote] = useState("1");
 
-  const provider = new JsonRpcProvider("https://mainnet.infura.io/v3/your-infura-id");
+  const hub = "https://hub.snapshot.org";
+  const client = new snapshot.Client712(hub);
 
-  async function createClient() {
-    try {
-      const client = await SignClient.init({
-        projectId: "project-id",
-      });
-      setSignClient(client);
-      console.log("create client run");
-    } catch (err) {
-      console.log(err);
+  const web3: JsonRpcFetchFunc = async (method, params) => {
+    const url = "https://mainnet.infura.io/v3/9266966958d84ce3b27d57274daad542";
+    const options = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: method,
+        params: params,
+      }),
+    };
+    const response = await fetch(url, options);
+    const data: any = await response.json();
+    if (data.error) {
+      throw new Error(data.error.message);
     }
-  }
+    return data.result;
+  };
 
-  function castVote(id: number, proposal: any) {
-    console.log("id", id);
-    console.log("proposal", proposal);
-  }
-
-  async function handleConnect() {
-    if (!signClient) throw Error("Cannot connect. Sign client not created");
-    try {
-      const proposalNamespace = {
-        eip155: {
-          chains: ["eip155:1"],
-          methods: ["eth_sign"],
-          events: ["accountsChanged"],
+  function createConnector() {
+    const wConnector = new NodeWalletConnect(
+      {
+        bridge: "https://bridge.walletconnect.org", // Required
+      },
+      {
+        clientMeta: {
+          description: "This is snapshot extension on raycast",
+          url: "https://developerdao.com",
+          icons: ["https://nodejs.org/static/images/logo.svg"],
+          name: "snapshot",
         },
-      };
-      const { uri, approval } = await signClient.connect({
-        requiredNamespaces: proposalNamespace,
-      });
-      console.log("uri: ", uri);
+      }
+    );
+    console.log("create connect runs");
+    setWalletConnector(wConnector);
+  }
+
+  function createSession() {
+    walletConnector?.createSession().then(() => {
+      console.log("crete session working");
+      // get uri for QR Code modal
+      const uri = walletConnector.uri;
       if (uri) {
         const tempDir = os.tmpdir();
         const imagePath = path.join(tempDir, "qrcode.png");
@@ -57,45 +74,58 @@ export const VoteView = ({ proposal }: { proposal: any }) => {
             setMarkdown(`![QR Code](${imagePath}) ${uri}`);
           }
         });
-        const sessionNamespace = await approval();
-        onSessionConnect(sessionNamespace);
       }
-    } catch (err) {
-      console.log(err);
-    }
+    });
   }
 
-  async function onSessionConnect(session: any) {
-    if (!session) throw Error("session doesn't exist");
+  function getAccounts() {
+    walletConnector?.on("connect", (error, payload) => {
+      if (error) {
+        throw error;
+      }
+      const { accounts } = payload.params[0];
+      console.log("Accounts", payload);
+      setParams(payload.params);
+      setAccounts(accounts);
+    });
+  }
+
+  async function castVote() {
     try {
-      setSessions(session);
-      setAccounts(session.namespaces.eip155.accounts[0].slice(9));
-    } catch (err) {
-      console.log(err);
+      await client.vote(await web3("", params), accounts![0], {
+        space: spaceId,
+        proposal: proposal.id,
+        type: "single-choice",
+        choice: vote,
+        reason: "Choice 1 make lot of sense",
+        app: "my-app",
+      });
+    } catch (e) {
+      console.log("Voting error: ", e);
     }
   }
 
   useEffect(() => {
-    if (!signClient) {
-      createClient();
-    }
-  }, [signClient]);
-
-  useEffect(() => {
-    if (signClient) {
-      handleConnect();
-    }
-  }, [signClient]);
-
-  useEffect(() => {
-    console.log("provider: ", provider);
+    createConnector();
   }, []);
 
-  return accounts.length ? (
-    <Form actions={<Actions item={proposal} vote={vote} />}>
-      //{" "}
+  useEffect(() => {
+    createSession();
+  }, [walletConnector]);
+
+  useEffect(() => {
+    getAccounts();
+  }, [walletConnector]);
+
+  return accounts?.length ? (
+    <Form
+      actions={
+        <ActionPanel>
+          <Action title="cast vote" onAction={() => castVote()} />
+        </ActionPanel>
+      }
+    >
       <Form.Dropdown id="vote" title="Cast Vote" value={vote} onChange={setVote}>
-        //{" "}
         {proposal.choices.map((choice: string, index: number) => (
           <Form.Dropdown.Item key={index} value={`${index + 1}`} title={choice} />
         ))}
@@ -106,29 +136,13 @@ export const VoteView = ({ proposal }: { proposal: any }) => {
   );
 };
 
-// import { Form, Action, ActionPanel } from "@raycast/api";
-// import { useState } from "react";
-
-// export const Vote = ({ proposal }: { proposal: any }) => {
-//   const [vote, setVote] = useState("1");
+// const Actions = ({ item, vote }: { item: any; vote: string }) => {
 //   return (
-//     <Form actions={<Actions item={proposal} vote={vote} />}>
-//       <Form.Dropdown id="vote" title="Cast Vote" value={vote} onChange={setVote}>
-//         {proposal.choices.map((choice: string, index: number) => (
-//           <Form.Dropdown.Item key={index} value={`${index + 1}`} title={choice} />
-//         ))}
-//       </Form.Dropdown>
-//     </Form>
+//     <ActionPanel>
+//       <Action.OpenInBrowser
+//         title="Submit vote"
+//         url={`https://snapshot.org/#/${item.space.id}/proposal/${item.id}?choice=${vote}`}
+//       />
+//     </ActionPanel>
 //   );
 // };
-
-const Actions = ({ item, vote }: { item: any; vote: string }) => {
-  return (
-    <ActionPanel>
-      <Action.OpenInBrowser
-        title="Submit vote"
-        url={`https://snapshot.org/#/${item.space.id}/proposal/${item.id}?choice=${vote}`}
-      />
-    </ActionPanel>
-  );
-};

@@ -3,7 +3,7 @@ import { Detail, Action, ActionPanel, Form } from "@raycast/api";
 import qrcode from "qrcode";
 import os from "os";
 import path from "path";
-import { JsonRpcFetchFunc, Web3Provider } from "@ethersproject/providers";
+import { JsonRpcFetchFunc, JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import fetch from "node-fetch";
 import NodeWalletConnect from "@walletconnect/node";
 import snapshot from "@snapshot-labs/snapshot.js";
@@ -18,8 +18,8 @@ export const VoteView = ({ proposal, spaceId }: { proposal: any; spaceId: string
   const hub = "https://hub.snapshot.org";
   const client = new snapshot.Client712(hub);
 
-  const web3: JsonRpcFetchFunc = async (method, params) => {
-    const url = "https://mainnet.infura.io/v3/9266966958d84ce3b27d57274daad542";
+  const JsonRpc: JsonRpcFetchFunc = async (method, params) => {
+    const url = "https://mainnet.infura.io/v3/infura-api-key";
     const options = {
       method: "POST",
       headers: {
@@ -37,8 +37,11 @@ export const VoteView = ({ proposal, spaceId }: { proposal: any; spaceId: string
     if (data.error) {
       throw new Error(data.error.message);
     }
+    console.log("data.result: ", data.result);
     return data.result;
   };
+
+  const web3 = new Web3Provider(async (method) => await JsonRpc(method, params));
 
   function createConnector() {
     const wConnector = new NodeWalletConnect(
@@ -92,7 +95,7 @@ export const VoteView = ({ proposal, spaceId }: { proposal: any; spaceId: string
 
   async function castVote() {
     try {
-      await client.vote(await web3("", params), accounts![0], {
+      await client.vote(web3, accounts![0], {
         space: spaceId,
         proposal: proposal.id,
         type: "single-choice",
@@ -121,7 +124,12 @@ export const VoteView = ({ proposal, spaceId }: { proposal: any; spaceId: string
     <Form
       actions={
         <ActionPanel>
-          <Action title="cast vote" onAction={() => castVote()} />
+          <Action
+            title="cast vote"
+            onAction={() => {
+              castVote();
+            }}
+          />
         </ActionPanel>
       }
     >

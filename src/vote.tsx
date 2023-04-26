@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { Detail, Action, ActionPanel, Form } from "@raycast/api";
 import qrcode from "qrcode";
+import Web3 from "web3";
+import { HttpProvider } from "web3-providers";
 import os from "os";
 import path from "path";
-import { JsonRpcFetchFunc, JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
+import { JsonRpcFetchFunc, Web3Provider } from "@ethersproject/providers";
 import fetch from "node-fetch";
 import NodeWalletConnect from "@walletconnect/node";
 import snapshot from "@snapshot-labs/snapshot.js";
+import { Wallet } from "@ethersproject/wallet";
 
 export const VoteView = ({ proposal, spaceId }: { proposal: any; spaceId: string }) => {
   const [markdown, setMarkdown] = useState(`Welcome to snapshot voting`);
@@ -15,33 +18,42 @@ export const VoteView = ({ proposal, spaceId }: { proposal: any; spaceId: string
   const [params, setParams] = useState<any>();
   const [vote, setVote] = useState("1");
 
-  const hub = "https://hub.snapshot.org";
+  // const hub = "https://hub.snapshot.org";
+  const hub = "https://testnet.hub.snapshot.org";
   const client = new snapshot.Client712(hub);
+  console.log("client: ", client);
 
-  const JsonRpc: JsonRpcFetchFunc = async (method, params) => {
-    const url = "https://mainnet.infura.io/v3/infura-api-key";
-    const options = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: method,
-        params: params,
-      }),
-    };
-    const response = await fetch(url, options);
-    const data: any = await response.json();
-    if (data.error) {
-      throw new Error(data.error.message);
-    }
-    console.log("data.result: ", data.result);
-    return data.result;
-  };
+  // const JsonRpc: JsonRpcFetchFunc = async () => {
+  //   const url = "https://mainnet.infura.io/v3/3805867acca24d4188b7e2e14df6f39b";
+  //   const options = {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({
+  //       jsonrpc: "2.0",
+  //       id: 1,
+  //       method: method,
+  //       params: params,
+  //     }),
+  //   };
+  //   console.log("Methods: %d and Params: %s", method, params);
+  //   const response = await fetch(url, options);
+  //   const data: any = await response.json();
+  //   if (data.error) {
+  //     throw new Error(data.error.message);
+  //   }
+  //   console.log("data.result: ", data.result);
+  //   return data.result;
+  // };
 
-  const web3 = new Web3Provider(async (method) => await JsonRpc(method, params));
+  // const web3 = new Web3Provider(JsonRpc);
+  // const web3 = new Web3Provider(JsonRpc);
+
+  // const web3Provider = new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/3805867acca24d4188b7e2e14df6f39b");
+  const provider = snapshot.utils.getProvider("1");
+  const web3 = new Web3Provider(provider);
+  console.log("Provider: ", provider);
 
   function createConnector() {
     const wConnector = new NodeWalletConnect(
@@ -94,18 +106,16 @@ export const VoteView = ({ proposal, spaceId }: { proposal: any; spaceId: string
   }
 
   async function castVote() {
-    try {
-      await client.vote(web3, accounts![0], {
-        space: spaceId,
-        proposal: proposal.id,
-        type: "single-choice",
-        choice: vote,
-        reason: "Choice 1 make lot of sense",
-        app: "my-app",
-      });
-    } catch (e) {
-      console.log("Voting error: ", e);
-    }
+    const voteResult = await client.vote(web3, "0x38D9cFf58D233AF0B9c1434EEDE012009D23c971", {
+      space: spaceId,
+      proposal: proposal.id,
+      timestamp: Date.now(),
+      type: "single-choice",
+      choice: vote,
+      reason: "Choice 1 make lot of sense",
+      app: "snapshot-extension",
+    });
+    console.log("voteResult: ", voteResult);
   }
 
   useEffect(() => {
@@ -113,12 +123,19 @@ export const VoteView = ({ proposal, spaceId }: { proposal: any; spaceId: string
   }, []);
 
   useEffect(() => {
+    setMarkdown(`Welcome to snapshot voting`);
     createSession();
   }, [walletConnector]);
 
   useEffect(() => {
     getAccounts();
   }, [walletConnector]);
+
+  useEffect(() => {
+    if (accounts?.length) {
+      console.log("Account", accounts[0]);
+    }
+  }, [accounts]);
 
   return accounts?.length ? (
     <Form
@@ -128,6 +145,7 @@ export const VoteView = ({ proposal, spaceId }: { proposal: any; spaceId: string
             title="cast vote"
             onAction={() => {
               castVote();
+              console.log("voting");
             }}
           />
         </ActionPanel>
@@ -140,7 +158,14 @@ export const VoteView = ({ proposal, spaceId }: { proposal: any; spaceId: string
       </Form.Dropdown>
     </Form>
   ) : (
-    <Detail markdown={markdown} />
+    <Detail
+      actions={
+        <ActionPanel>
+          <Action.CopyToClipboard title="copy qrcode" content={markdown.split(" ")[2]} />
+        </ActionPanel>
+      }
+      markdown={markdown}
+    />
   );
 };
 

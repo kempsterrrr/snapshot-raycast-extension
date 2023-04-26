@@ -23,9 +23,10 @@ export default function Command() {
     });
 
     setDataLoading(false);
-    setSpaces(
-      arrspaces.filter((space) => space.followers && space.followers > 0).sort((a, b) => b.followers - a.followers)
-    );
+    // setSpaces(
+    //   arrspaces.filter((space) => space.followers && space.followers > 0).sort((a, b) => b.followers - a.followers)
+    // );
+    setSpaces(arrspaces);
   }
 
   const filterBySearch = (searchText: string) => {

@@ -31,3 +31,22 @@ export type SnapshotSpaceType = {
   votes: number;
   followers: number;
 };
+
+export type Proposal = {
+  id: string;
+  snapshot: string;
+  author: string;
+  title: string;
+  body: string;
+  link: string;
+  state: string;
+  choices: string[];
+  scores: number[];
+  space: {
+    id: string;
+  };
+  strategies: {
+    name: string;
+  };
+  symbol: string;
+};
